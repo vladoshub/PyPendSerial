@@ -1,5 +1,5 @@
 import serial.tools.list_ports;
-
+import measurement
 ID="1A86:7523"
 ser = serial.Serial()
 
@@ -51,19 +51,20 @@ def doClear():  # claer all safe data(очищает все измерения �
 
 
 def doMeasurement():  # start Measurement(Запустить режим ожидания старта маятника и записи маха)
-    try:
+
         ser.write(bytes('W', 'UTF-8'))
         ser.flush()
-    except:
-        raise Exception('error')
+        status = ser.readline().strip().decode()
+        return status
+
 
 
 def getStatus():  # get status driver(получает текущий режим работы драйвера)
     try:
         ser.write(bytes('T', 'UTF-8'))
         ser.flush()
-        statusWork = ser.readline().decode()
-        statusLastWork = ser.readline().decode()
+        statusWork = ser.readline().strip().decode()
+        statusLastWork = ser.readline().strip().decode()
         return statusWork, statusLastWork
     except:
         raise Exception('error')
@@ -73,7 +74,7 @@ def getDataCoordinate():  # current position(возвращает текущее
     try:
         ser.write(bytes('N', 'UTF-8'))
         ser.flush()
-        l = (ser.readline().decode())
+        l = (ser.readline().strip().decode())
         return l
     except:
         raise Exception('error')
@@ -83,15 +84,24 @@ def getDataArray():  # get received data-time and coordinate(возвращае�
     try:
         ser.write(bytes('M', 'UTF-8'))
         ser.flush()
-        k = int(ser.readline().decode())
-        m=k
-        time = []
-        coordinate = []
-        while k > 0:
-            time.append(float(ser.readline().decode()))
-            coordinate.append(int(ser.readline().decode()))
-            k = k - 1
-        return coordinate, time,m
+        status = ser.readline().strip().decode()
+        meas = measurement.measurement()
+        meas.set_Status(status)
+        k = int(ser.readline().strip().decode())
+        meas.set_Count(k)
+        if(status=='I' and k>0):
+            meas.set_Count(k)
+            time = []
+            coordinate = []
+            while k > 0:
+                time.append(float(ser.readline().strip().decode()))
+                coordinate.append(int(ser.readline().strip().decode()))
+                k = k - 1
+            meas.set_Time(time)
+            meas.set_Coordinate(coordinate)
+            return meas
+        else:
+            return meas
     except:
         raise Exception('error')
 
