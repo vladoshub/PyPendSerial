@@ -19,7 +19,7 @@ def ports():
         if ID in port.hwid:
             return port.device
 def init():
-    ser.baudrate = 9600
+    ser.baudrate = 500000
     ser.port = ports()
     ser.open()
     if ser.is_open:
@@ -34,9 +34,8 @@ def doChangeSensor(arg1, arg2):  # overwrite sensitivity threshold(переза�
     try:
         ser.write(bytes('S', 'UTF-8'))
         ser.flush()
-        ser.write(bytes(arg1 + '\n', 'UTF-8'))
-        ser.flush()
-        ser.write(bytes(arg2 + '\n', 'UTF-8'))
+        arg=str(arg1)+'$'+str(arg2)+'$'
+        ser.write(bytes(arg + '\n', 'UTF-8'))
         ser.flush()
     except:
         raise Exception('error')
